@@ -2,8 +2,6 @@ var CELL_SIZE = 16;  //マスのサイズ
 var COL_COUNT = 6;   //横のマス数
 var ROW_COUNT = 12;  //縦のマス数
 
-
-
 var context = null;
 
 // enchant.js を使う前に必要な処理。
@@ -11,14 +9,14 @@ enchant();
 
 window.onload = function () {
 
-    // 画面の大きさが 320ピクセル x 320ピクセル の Game オブジェクトを作成する
-    var game = new Core(320, 320);
+    // Game オブジェクトを作成する
+    var game = new Core(CELL_SIZE * 10, CELL_SIZE * 13);
 
     // ゲームのFPS
     game.fps = 15;
 
     // 必要なファイルを相対パスで引数に指定する。 ファイルはすべて、ゲームが始まる前にロードされる。
-    game.preload("images/puyopuyo2.png", "images/map0.png");
+    game.preload("images/puyopuyo2.png", "images/map0.png", "images/gameover.png");
 
     // ロードが完了したら、ゲームの処理を実行していく
     game.onload = function () {
@@ -54,7 +52,8 @@ function enterFrame() {
         //次のぷよの落下待ちの場合
         if (GameContext.currnt().map.isGameOver()) {
             //ゲームオーバーの場合
-
+            //alert("gameover");
+            GameContext.currnt().endGame();
         } else {
             //次の[ぷよ]を降らせる
             GameContext.currnt().popNext();
@@ -67,20 +66,9 @@ function enterFrame() {
     }
 }
 
-function sampleResolve(value) {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            resolve(value * 2);
-        }, 2000);
-    })
+/**
+ * ゲームオーバ画面の表示
+ */
+function pushGameOverScene() {
+
 }
-async function sample() {
-    console.log("start sample");
-    const result = await sampleResolve(5);
-    console.log("end sample");
-    return result + 5;
-}
-sample();
-
-
-

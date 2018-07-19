@@ -4,7 +4,8 @@ var GAME_STATE = {
   FALLING: "FALLING",
   WAIT_FIX: "WAIT_FIXED",
   FIXED: "FIXED",
-  RENSA_ANIME: "RENSA_ANIME"
+  RENSA_ANIME: "RENSA_ANIME",
+  GAME_OVER: "GAME_OVER"
 };
 
 /**
@@ -24,16 +25,12 @@ class GameContext {
    * @param game ゲームオブジェクト
    */
   constructor(game) {
-    this.game = game;               // ゲームオブジェクト
-    this.clearGame();
+    // ゲームオブジェクト
+    this.game = game;
+    // キーボード操作に対応するコントローラクラス
     this.controller = null;
+    // [ぷよ]の配置状況を管理するマップクラス
     this.map = null;
-  }
-
-  /** 
-   * ゲーム情報の初期化 
-   */
-  clearGame() {
     // 現在落下中の[ぷよ]を格納する変数
     this.dropingPuyoPair = null;     
     // 次に落ちる[ぷよ]のリスト
@@ -53,6 +50,32 @@ class GameContext {
     this.controller.start();
     //ゲーム状態を、[ぷよ]の落下待ちに設定する
     this.state = GAME_STATE.WAIT_NEXT;
+  }
+
+  /**
+   * ゲームの終了(game over)
+   */
+  endGame() {
+    // コントローラを停止
+    this.controller.stop();
+    //ゲーム状態を、ゲームオーバ状態に設定
+    this.state = GAME_STATE.GAME_OVER;
+    //ゲームオーバ画面を表示するシーンを追加する
+    this.pushGameOverScene();
+  }
+
+  /** 
+   * ゲーム情報の初期化 
+   */
+  clearGame() {
+    this.map.removeAllPuyo();
+    this.dropingPuyoPair = null;     
+    this.nextList.forEach((puyoPair) => {
+      this.game.rootScene.removeChild(puyoPair.puyo1.sprite);
+      this.game.rootScene.removeChild(puyoPair.puyo2.sprite);
+    });
+    this.nextList = [];     
+    this.state = GAME_STATE.STOP;
   }
 
   /**
@@ -105,4 +128,42 @@ class GameContext {
     animation.process();
   }
 
+  /**
+   * ゲームオーバ画面を表示する、Sceneを追加
+   */
+  pushGameOverScene() {
+
+    // 新しく Scene を作成する
+    let scene = new Scene();
+    scene.backgroundColor = 'rgba(0, 0, 255, 0.5)';
+
+    // GAME OVER画像を表示する Sprite を作成する
+    let sprite = new Sprite(95, 49);
+    sprite.image = this.game.assets["images/gameover.png"];
+    sprite.x = CELL_SIZE * 2;
+    sprite.y = CELL_SIZE * 4;
+    scene.addChild(sprite);
+
+    // ラベルを作成する
+    let label = new Label("画面タッチでリトライ");
+    label.font = '13px "Fira Sans", sans-serif';
+    label.color = "#fff";
+    label.y = sprite.y + 60;
+    label.x = 0;
+    label.width = this.game.width;
+    label.textAlign = "center";
+    scene.addChild(label);
+
+    // シーンを追加します
+    this.game.pushScene(scene);
+
+    // 画面をタッチした際に、ゲームをリトライする為の処理
+    scene.addEventListener(Event.TOUCH_START, (e) => { // シーンにタッチイベントを設定
+      //ゲームオーバのSceneを取り除く
+      this.game.popScene();
+      //ゲームの初期化・リトライを行います
+      this.clearGame();
+      this.startGame();
+    });
+  }
 }

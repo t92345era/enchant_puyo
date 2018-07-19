@@ -49,9 +49,11 @@ class GameMap {
    * @param {Puyo} puyo 
    */
   setPuyo(puyo, row, col) {
-    this.puyoList[row][col] = puyo;
-    if (puyo != null) {
-      puyo.setPosition(row, col);
+    if (row >= 0) {
+      this.puyoList[row][col] = puyo;
+      if (puyo != null) {
+        puyo.setPosition(row, col);
+      }
     }
   }
 
@@ -88,6 +90,15 @@ class GameMap {
   }
 
   /**
+   * すべての[ぷよ]を削除
+   */
+  removeAllPuyo() {
+    this.invokeAll((row, col, puyo) => {
+      this.removePuyo(row, col);
+    });
+  }
+
+  /**
    * 行と列インデックスを指定してぷよを取得します
    */
   puyo(row, col) {
@@ -98,7 +109,8 @@ class GameMap {
    * ゲームオーバしているか判定する
    */
   isGameOver() {
-    return false;
+    //[ぷよ]が落下する列の左上部まで積まれた場合ゲームオーバとする
+    return this.puyoList[0][2] != null;
   }
 
   /**
